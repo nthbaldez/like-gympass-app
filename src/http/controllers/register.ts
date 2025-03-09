@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import z from 'zod'
 import { RegisterUseCase } from '@/use-cases/register'
 import { UsersRepository } from '@/repositories/users-repository'
+import { UserAlreadyExistsError } from '@/use-cases/errors/user-already-exists-error'
 
 export async function registerController(
   request: FastifyRequest,
@@ -25,7 +26,11 @@ export async function registerController(
       password,
     })
   } catch (error) {
-    return reply.status(409).send()
+    if (error instanceof UserAlreadyExistsError) {
+      return reply.status(409).send({ message: error.message })
+    }
+
+    throw error
   }
 
   return reply.status(201).send()
