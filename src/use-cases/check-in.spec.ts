@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
 import { InMemoryCheckInsRepository } from '@/repositories/in-memory/in-memory-check-ins-repository'
 import { CheckInUseCase } from './check-in'
 
@@ -9,14 +9,36 @@ describe('Register Use Case', () => {
   beforeEach(() => {
     checkInsRepository = new InMemoryCheckInsRepository()
     sut = new CheckInUseCase(checkInsRepository)
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('should be able to check in', async () => {
+    vi.setSystemTime(new Date(2025, 2, 9))
+
     const { checkIn } = await sut.execute({
       gymId: 'gym-01',
       userId: 'user-01',
     })
 
+    console.log(checkIn)
     expect(checkIn.id).toEqual(expect.any(String))
+  })
+
+  it('should not be able to check in twice in the same day', async () => {
+    await sut.execute({
+      gymId: 'gym-01',
+      userId: 'user-01',
+    })
+
+    await expect(() =>
+      sut.execute({
+        gymId: 'gym-01',
+        userId: 'user-01',
+      }),
+    ).rejects.toBeInstanceOf(Error)
   })
 })
