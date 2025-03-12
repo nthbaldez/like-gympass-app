@@ -1,5 +1,4 @@
-import { User } from '@prisma/client'
-import { UserCreateInput } from '../interfaces/user-create-input'
+import { Prisma, User } from '@prisma/client'
 import { UsersRepository } from '../interfaces/users-repository'
 
 export class InMemoryUsersRepository implements UsersRepository {
@@ -15,7 +14,7 @@ export class InMemoryUsersRepository implements UsersRepository {
     return user
   }
 
-  async create(data: UserCreateInput) {
+  async create(data: Prisma.UserCreateInput) {
     const user = {
       id: 'user-1',
       name: data.name,
