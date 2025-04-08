@@ -7,14 +7,19 @@ export async function authenticateController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const authenticateBodySchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-  })
-
-  const { email, password } = authenticateBodySchema.parse(request.body)
 
   try {
+    if (!request.body) {
+      return reply.status(400).send({ message: 'Dados inválidos para a requisição.' })
+    }
+
+    const authenticateBodySchema = z.object({
+      email: z.string().email(),
+      password: z.string().min(6, 'Password é obrigatório.'),
+    })
+  
+    const { email, password } = authenticateBodySchema.parse(request.body)
+
     const authenticateUseCase = makeAuthenticateUseCase()
 
     const { user } = await authenticateUseCase.execute({
@@ -39,6 +44,17 @@ export async function authenticateController(
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return reply.status(400).send({ message: error.message })
+    }
+
+    if (error instanceof z.ZodError) {
+      const formattedError = error.errors.map((err) => ({
+        field: err.path[0],
+        message: err.message,
+      }))
+      return reply.status(400).send({ 
+        message: 'Erro de validação.',
+        error: formattedError,
+      })
     }
 
     throw error
