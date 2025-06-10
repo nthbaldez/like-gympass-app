@@ -7,17 +7,18 @@ export async function authenticateController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-
   try {
     if (!request.body) {
-      return reply.status(400).send({ message: 'Dados inválidos para a requisição.' })
+      return reply
+        .status(400)
+        .send({ message: 'Dados inválidos para a requisição.' })
     }
 
     const authenticateBodySchema = z.object({
       email: z.string().email(),
       password: z.string().min(6, 'Password é obrigatório.'),
     })
-  
+
     const { email, password } = authenticateBodySchema.parse(request.body)
 
     const authenticateUseCase = makeAuthenticateUseCase()
@@ -51,7 +52,7 @@ export async function authenticateController(
         field: err.path[0],
         message: err.message,
       }))
-      return reply.status(400).send({ 
+      return reply.status(400).send({
         message: 'Erro de validação.',
         error: formattedError,
       })
